@@ -1,0 +1,30 @@
+{
+  "areaHectares": 250,
+  "h3Resolution": 9,
+  "plots": [
+    {
+      "id": "TR-YEDIGOLLER-001",
+      "role": "healthy",
+      "name": "Yedigöller National Park, Bolu",
+      "center": [31.75, 40.93],
+      "placeholder": true,
+      "note": "Square around the plan's candidate point. Replace with a polygon drawn in EO Browser after G1."
+    },
+    {
+      "id": "BR-NOVOPROGRESSO-001",
+      "role": "degraded",
+      "name": "Novo Progresso, Pará",
+      "center": [-55.38, -7.13],
+      "placeholder": true,
+      "note": "Fallback degraded plot. Swap for a Turkish one if G1 finds a strong enough signal."
+    },
+    {
+      "id": "TR-MANAVGAT-001",
+      "role": "burned",
+      "name": "Manavgat 2021 fire, Antalya",
+      "center": [31.44, 36.79],
+      "placeholder": true,
+      "note": "This point is the town centre, not the burn scar. Redraw on the scar north/north-east of town after G1."
+    }
+  ]
+}

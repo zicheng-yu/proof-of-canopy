@@ -1,0 +1,26 @@
+{
+  "name": "proof-of-canopy",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "build": "forge build --root contracts",
+    "test": "forge test --root contracts",
+    "plots": "node scripts/prepare-plots.ts",
+    "fixtures": "node scripts/make-fixture-attestations.ts",
+    "demo": "node scripts/demo.ts",
+    "demo:local": "bash scripts/demo-local.sh",
+    "demo:testnet": "bash scripts/demo-testnet.sh",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "h3-js": "^4.5.0",
+    "viem": "^2.57.10"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "typescript": "^7.0.2"
+  }
+}

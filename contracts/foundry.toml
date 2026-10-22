@@ -1,0 +1,18 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+solc_version = "0.8.28"
+evm_version = "cancun"
+optimizer = true
+optimizer_runs = 200
+fs_permissions = [{ access = "read-write", path = "../deployments" }]
+
+[fuzz]
+runs = 1024
+
+[lint]
+# Reviewed and accepted: timestamps are only compared against a minutes-to-days challenge window;
+# uint64 timestamps cannot truncate; ETH is sent only to msg.sender or the burn address; reverts in
+# the registry loop are the intended all-or-nothing cell check; fund() calls getProject for its revert.
+exclude_lints = ["block-timestamp", "unsafe-typecast", "arbitrary-send-eth", "require-revert-in-loop", "unused-return"]

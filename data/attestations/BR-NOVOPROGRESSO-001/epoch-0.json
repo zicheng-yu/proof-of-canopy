@@ -1,0 +1,32 @@
+{
+  "schema": "proof-of-canopy/attestation@1",
+  "fixture": true,
+  "fixtureNote": "Illustrative value from the project plan, not computed from imagery.",
+  "plotId": "BR-NOVOPROGRESSO-001",
+  "plotHash": "0xd0dde498949d65c83cc3749c49ea56b85d88abb1a6a99b91e0b2a67637cbcca5",
+  "epoch": 0,
+  "baselineWindow": [
+    "2019-01-01",
+    "2020-12-31"
+  ],
+  "observationWindow": [
+    "2021-01-01",
+    "2021-12-31"
+  ],
+  "method": {
+    "id": "ndvi-histogram-v1",
+    "sensor": "Sentinel-2 L2A",
+    "cloudMask": "SCL classes 3, 8, 9, 10, 11 excluded",
+    "canopyRule": "pixel NDVI >= canopyNdviThreshold",
+    "canopyNdviThreshold": 0.5,
+    "survival": "canopyFraction(observation) / canopyFraction(baseline), capped at 1"
+  },
+  "metrics": {
+    "survivalRatioBps": 7800,
+    "validPixelRatio": null,
+    "canopyFractionBaseline": null,
+    "canopyFractionObserved": null,
+    "dnbr": null,
+    "firmsDetections": null
+  }
+}

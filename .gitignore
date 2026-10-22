@@ -1,0 +1,10 @@
+node_modules/
+.env
+.DS_Store
+
+contracts/out/
+contracts/cache/
+contracts/broadcast/*/31337/
+
+# local anvil runs; public-chain deployments are committed
+deployments/31337*.json
