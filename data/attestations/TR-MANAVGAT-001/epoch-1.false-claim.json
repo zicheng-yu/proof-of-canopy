@@ -1,0 +1,55 @@
+{
+  "schema": "proof-of-canopy/attestation@1",
+  "plotId": "TR-MANAVGAT-001",
+  "plotHash": "0x7b58bea43322dd539cc2c689872b20217e16678b65b6a4d599225ddb488edef1",
+  "epoch": 1,
+  "method": {
+    "id": "canopy-late-season-max-v1",
+    "canopyNdviThreshold": 0.5,
+    "scoredMonths": [
+      8,
+      9,
+      10
+    ],
+    "minValidRatio": 0.6,
+    "baselineYears": [
+      2019,
+      2020
+    ],
+    "epochYears": [
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ]
+  },
+  "inputs": {
+    "seriesFile": "data/series/TR-MANAVGAT-001.json",
+    "seriesHash": "0x8d074476bc67d9cc1ea6f03edfac79b5db686d6b61956a7bb8b5c49936329f08"
+  },
+  "baseline": {
+    "years": [
+      2019,
+      2020
+    ],
+    "scoredMonths": [
+      "2019-10",
+      "2020-10"
+    ]
+  },
+  "observation": {
+    "year": 2022,
+    "scoredMonth": "2022-10"
+  },
+  "metrics": {
+    "canopyFractionBaseline": 0.922075,
+    "canopyFractionObserved": 0.866751,
+    "survivalRatioBps": 9400,
+    "cloudFreeRatioOfSeason": 1,
+    "canopyTrendPerYear": -0.326806
+  },
+  "events": {},
+  "staged": true,
+  "stagedNote": "Deliberately false claim for the dispute demo. Its canopy numbers are inflated; recomputing them from the cited series file does not reproduce them."
+}

@@ -1,0 +1,53 @@
+{
+  "schema": "proof-of-canopy/attestation@1",
+  "plotId": "BR-NOVOPROGRESSO-001",
+  "plotHash": "0x3e3915aacb7ab60db750094efa37a0e8c523e7132b22dedfd5751116c7e87c11",
+  "epoch": 1,
+  "method": {
+    "id": "canopy-late-season-max-v1",
+    "canopyNdviThreshold": 0.5,
+    "scoredMonths": [
+      8,
+      9,
+      10
+    ],
+    "minValidRatio": 0.6,
+    "baselineYears": [
+      2019,
+      2020
+    ],
+    "epochYears": [
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ]
+  },
+  "inputs": {
+    "seriesFile": "data/series/BR-NOVOPROGRESSO-001.json",
+    "seriesHash": "0x873db2c2834559587c99cbf2cbc435978036dac840f50050d31205530ec2c4bc"
+  },
+  "baseline": {
+    "years": [
+      2019,
+      2020
+    ],
+    "scoredMonths": [
+      "2019-10",
+      "2020-10"
+    ]
+  },
+  "observation": {
+    "year": 2022,
+    "scoredMonth": "2022-08"
+  },
+  "metrics": {
+    "canopyFractionBaseline": 0.971338,
+    "canopyFractionObserved": 0.793397,
+    "survivalRatioBps": 8168,
+    "cloudFreeRatioOfSeason": 0.677336,
+    "canopyTrendPerYear": -0.030863
+  },
+  "events": {}
+}

@@ -9,11 +9,14 @@
     "build": "forge build --root contracts",
     "test": "forge test --root contracts",
     "plots": "node scripts/prepare-plots.ts",
-    "fixtures": "node scripts/make-fixture-attestations.ts",
     "demo": "node scripts/demo.ts",
     "demo:local": "bash scripts/demo-local.sh",
-    "demo:testnet": "bash scripts/demo-testnet.sh",
-    "typecheck": "tsc --noEmit"
+    "demo:testnet": "node scripts/deploy.ts --verify && node scripts/demo.ts",
+    "typecheck": "tsc --noEmit",
+    "abis": "node scripts/export-abis.ts",
+    "snapshot": "node scripts/snapshot-events.ts",
+    "oracle": "node oracle/run.ts",
+    "oracle:false-claim": "node oracle/stage-false-claim.ts TR-MANAVGAT-001 1 9400"
   },
   "dependencies": {
     "h3-js": "^4.5.0",

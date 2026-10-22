@@ -1,0 +1,11 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "proof-of-canopy",
+  "compatibility_date": "2026-10-22",
+  "workers_dev": false,
+  "routes": [{ "pattern": "proofofcanopy.zichengyu.com", "custom_domain": true }],
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+}

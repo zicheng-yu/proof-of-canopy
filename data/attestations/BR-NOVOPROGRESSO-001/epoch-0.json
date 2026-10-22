@@ -1,32 +1,53 @@
 {
   "schema": "proof-of-canopy/attestation@1",
-  "fixture": true,
-  "fixtureNote": "Illustrative value from the project plan, not computed from imagery.",
   "plotId": "BR-NOVOPROGRESSO-001",
-  "plotHash": "0xd0dde498949d65c83cc3749c49ea56b85d88abb1a6a99b91e0b2a67637cbcca5",
+  "plotHash": "0x3e3915aacb7ab60db750094efa37a0e8c523e7132b22dedfd5751116c7e87c11",
   "epoch": 0,
-  "baselineWindow": [
-    "2019-01-01",
-    "2020-12-31"
-  ],
-  "observationWindow": [
-    "2021-01-01",
-    "2021-12-31"
-  ],
   "method": {
-    "id": "ndvi-histogram-v1",
-    "sensor": "Sentinel-2 L2A",
-    "cloudMask": "SCL classes 3, 8, 9, 10, 11 excluded",
-    "canopyRule": "pixel NDVI >= canopyNdviThreshold",
+    "id": "canopy-late-season-max-v1",
     "canopyNdviThreshold": 0.5,
-    "survival": "canopyFraction(observation) / canopyFraction(baseline), capped at 1"
+    "scoredMonths": [
+      8,
+      9,
+      10
+    ],
+    "minValidRatio": 0.6,
+    "baselineYears": [
+      2019,
+      2020
+    ],
+    "epochYears": [
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ]
+  },
+  "inputs": {
+    "seriesFile": "data/series/BR-NOVOPROGRESSO-001.json",
+    "seriesHash": "0x873db2c2834559587c99cbf2cbc435978036dac840f50050d31205530ec2c4bc"
+  },
+  "baseline": {
+    "years": [
+      2019,
+      2020
+    ],
+    "scoredMonths": [
+      "2019-10",
+      "2020-10"
+    ]
+  },
+  "observation": {
+    "year": 2021,
+    "scoredMonth": "2021-09"
   },
   "metrics": {
-    "survivalRatioBps": 7800,
-    "validPixelRatio": null,
-    "canopyFractionBaseline": null,
-    "canopyFractionObserved": null,
-    "dnbr": null,
-    "firmsDetections": null
-  }
+    "canopyFractionBaseline": 0.971338,
+    "canopyFractionObserved": 0.972312,
+    "survivalRatioBps": 10000,
+    "cloudFreeRatioOfSeason": 0.935056,
+    "canopyTrendPerYear": 0.003027
+  },
+  "events": {}
 }

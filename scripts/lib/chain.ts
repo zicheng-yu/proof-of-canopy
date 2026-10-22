@@ -5,6 +5,7 @@ import {
 } from 'viem';
 import { mnemonicToAccount, privateKeyToAccount } from 'viem/accounts';
 import { baseSepolia, foundry } from 'viem/chains';
+import { deployerKey, loadEnv } from './keys.ts';
 import { dim, line } from './log.ts';
 import { fromRoot, readJson } from './paths.ts';
 
@@ -49,10 +50,11 @@ export async function connect(rpcUrl: string) {
   const walletClient = createWalletClient({ chain, transport });
   const testClient = isLocal ? createTestClient({ chain, transport, mode: 'anvil' }) : undefined;
 
+  loadEnv();
   const accounts = Object.fromEntries(ROLES.map((role, i) => {
     if (isLocal) return [role, mnemonicToAccount(ANVIL_MNEMONIC, { addressIndex: i })];
-    const key = process.env[ENV_KEY[role]];
-    if (!key) throw new Error(`${ENV_KEY[role]} is not set (see .env.example)`);
+    const key = role === 'deployer' ? deployerKey() : process.env[ENV_KEY[role]];
+    if (!key) throw new Error(`no key for ${role}: set ${ENV_KEY[role]}${role === 'deployer' ? ' or DEPLOYER_KEYSTORE' : ''} (see .env.example)`);
     return [role, privateKeyToAccount(key as Hash)];
   })) as Record<Role, Account>;
 

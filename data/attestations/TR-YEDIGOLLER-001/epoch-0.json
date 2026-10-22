@@ -1,32 +1,53 @@
 {
   "schema": "proof-of-canopy/attestation@1",
-  "fixture": true,
-  "fixtureNote": "Illustrative value from the project plan, not computed from imagery.",
   "plotId": "TR-YEDIGOLLER-001",
-  "plotHash": "0x72449214b02658fab181c3bffe689808251a708d4be443641b6a567eb3f9d983",
+  "plotHash": "0x9a237c7378aa1a1c6ffa31910c5de857ca8bc13ec148c4678e401e79491e0fda",
   "epoch": 0,
-  "baselineWindow": [
-    "2019-01-01",
-    "2020-12-31"
-  ],
-  "observationWindow": [
-    "2021-01-01",
-    "2021-12-31"
-  ],
   "method": {
-    "id": "ndvi-histogram-v1",
-    "sensor": "Sentinel-2 L2A",
-    "cloudMask": "SCL classes 3, 8, 9, 10, 11 excluded",
-    "canopyRule": "pixel NDVI >= canopyNdviThreshold",
+    "id": "canopy-late-season-max-v1",
     "canopyNdviThreshold": 0.5,
-    "survival": "canopyFraction(observation) / canopyFraction(baseline), capped at 1"
+    "scoredMonths": [
+      8,
+      9,
+      10
+    ],
+    "minValidRatio": 0.6,
+    "baselineYears": [
+      2019,
+      2020
+    ],
+    "epochYears": [
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ]
+  },
+  "inputs": {
+    "seriesFile": "data/series/TR-YEDIGOLLER-001.json",
+    "seriesHash": "0x39e01eb49f7417c3f75330e5527fafa73c01feb7340132636a3be79e7a1d6261"
+  },
+  "baseline": {
+    "years": [
+      2019,
+      2020
+    ],
+    "scoredMonths": [
+      "2019-09",
+      "2020-08"
+    ]
+  },
+  "observation": {
+    "year": 2021,
+    "scoredMonth": "2021-09"
   },
   "metrics": {
-    "survivalRatioBps": 9600,
-    "validPixelRatio": null,
-    "canopyFractionBaseline": null,
-    "canopyFractionObserved": null,
-    "dnbr": null,
-    "firmsDetections": null
-  }
+    "canopyFractionBaseline": 0.991877,
+    "canopyFractionObserved": 0.99222,
+    "survivalRatioBps": 10000,
+    "cloudFreeRatioOfSeason": 1,
+    "canopyTrendPerYear": -0.000362
+  },
+  "events": {}
 }

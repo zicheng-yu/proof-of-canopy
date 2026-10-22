@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Starts a throwaway anvil node, deploys the contracts and runs the demo against it.
 # KEEP_ANVIL=1 leaves the node running afterwards (e.g. for frontend work).
+# SNAPSHOT=1 also records the run as the website's replay.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -32,6 +33,11 @@ echo "Deploying to anvil at $RPC_URL…"
   --rpc-url "$RPC_URL" --broadcast --silent)
 
 RPC_URL="$RPC_URL" node "$ROOT/scripts/demo.ts"
+
+# SNAPSHOT=1 records the run for the website's replay mode (data/replay/demo-31337.json)
+if [[ "${SNAPSHOT:-0}" == "1" ]]; then
+  RPC_URL="$RPC_URL" node "$ROOT/scripts/snapshot-events.ts"
+fi
 
 if [[ "${KEEP_ANVIL:-0}" == "1" ]]; then
   echo "anvil still running on $RPC_URL (pid $ANVIL_PID)"

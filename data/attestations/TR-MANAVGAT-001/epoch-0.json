@@ -1,32 +1,69 @@
 {
   "schema": "proof-of-canopy/attestation@1",
-  "fixture": true,
-  "fixtureNote": "Illustrative value from the project plan, not computed from imagery.",
   "plotId": "TR-MANAVGAT-001",
-  "plotHash": "0x1111a4f4af209c69329f19f704552d07b3d90019b7805f3070fb4d839a787a74",
+  "plotHash": "0x7b58bea43322dd539cc2c689872b20217e16678b65b6a4d599225ddb488edef1",
   "epoch": 0,
-  "baselineWindow": [
-    "2019-01-01",
-    "2020-12-31"
-  ],
-  "observationWindow": [
-    "2021-01-01",
-    "2021-12-31"
-  ],
   "method": {
-    "id": "ndvi-histogram-v1",
-    "sensor": "Sentinel-2 L2A",
-    "cloudMask": "SCL classes 3, 8, 9, 10, 11 excluded",
-    "canopyRule": "pixel NDVI >= canopyNdviThreshold",
+    "id": "canopy-late-season-max-v1",
     "canopyNdviThreshold": 0.5,
-    "survival": "canopyFraction(observation) / canopyFraction(baseline), capped at 1"
+    "scoredMonths": [
+      8,
+      9,
+      10
+    ],
+    "minValidRatio": 0.6,
+    "baselineYears": [
+      2019,
+      2020
+    ],
+    "epochYears": [
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ]
+  },
+  "inputs": {
+    "seriesFile": "data/series/TR-MANAVGAT-001.json",
+    "seriesHash": "0x8d074476bc67d9cc1ea6f03edfac79b5db686d6b61956a7bb8b5c49936329f08"
+  },
+  "baseline": {
+    "years": [
+      2019,
+      2020
+    ],
+    "scoredMonths": [
+      "2019-10",
+      "2020-10"
+    ]
+  },
+  "observation": {
+    "year": 2021,
+    "scoredMonth": "2021-10"
   },
   "metrics": {
-    "survivalRatioBps": 3100,
-    "validPixelRatio": null,
-    "canopyFractionBaseline": null,
-    "canopyFractionObserved": null,
-    "dnbr": null,
-    "firmsDetections": null
+    "canopyFractionBaseline": 0.922075,
+    "canopyFractionObserved": 0.149682,
+    "survivalRatioBps": 1623,
+    "cloudFreeRatioOfSeason": 1,
+    "canopyTrendPerYear": -0.388958
+  },
+  "events": {
+    "fire": {
+      "month": "2021-08",
+      "canopyBefore": 0.827582,
+      "canopyAfter": 0,
+      "drop": 0.827582,
+      "dnbr": 0.3263,
+      "firmsSource": "VIIRS_SNPP_SP",
+      "firmsWindow": [
+        "2021-07-01",
+        "2021-08-31"
+      ],
+      "firmsDetections": 15,
+      "firstDetection": "2021-08-01",
+      "lastDetection": "2021-08-02"
+    }
   }
 }

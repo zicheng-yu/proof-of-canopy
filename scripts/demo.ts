@@ -1,14 +1,18 @@
-// The whole story in one run: register three plots, fund them, attest, settle the first tranche,
-// then catch a verifier lying about the burned plot.
+// The whole story in one run, on the oracle's Sentinel-2 evidence:
+//   register three plots · refuse a double registration · fund · attest every epoch · settle them ·
+//   catch a false claim · let the honest claim take its slot · return what stayed frozen.
 //
 //   RPC_URL=http://127.0.0.1:8545 node scripts/demo.ts      (scripts/demo-local.sh does this for you)
 //
-// Expects a fresh deployment at deployments/<chainId>.json (contracts/script/Deploy.s.sol).
-// Env: ESCROW_PER_PROJECT (ether, default 0.02); on a public chain also the *_KEY variables in .env.example.
-import { readFileSync } from 'node:fs';
+// Expects a fresh deployment at deployments/<chainId>.json (contracts/script/Deploy.s.sol) and the
+// oracle's files in data/attestations/<plotId>/epoch-<n>.json. The plot/epoch that also has an
+// epoch-<n>.false-claim.json is held back for the dispute.
+// Env (.env is loaded): ESCROW_PER_PROJECT (ether, default 0.003); on a public chain the keys in .env.example.
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { formatEther, keccak256, parseEther, toBytes, type Address, type Hash } from 'viem';
 import { connect, type Role } from './lib/chain.ts';
 import { canonicalGeoJson, canonicalRing, h3Cells, ringFromGeoJson, shiftRing } from './lib/geo.ts';
+import { loadEnv } from './lib/keys.ts';
 import { bold, dim, green, line, red, step, yellow } from './lib/log.ts';
 import { fromRoot, readJson, writeJson } from './lib/paths.ts';
 
@@ -24,14 +28,15 @@ interface ManifestPlot {
   plotHash: Hash;
   areaHectares: number;
   cells: string[];
-  placeholder: boolean;
 }
 
-interface AttestationFile {
-  plotHash: Hash;
+interface Evidence {
+  plotId: string;
   epoch: number;
-  fixture?: boolean;
-  metrics: { survivalRatioBps: number };
+  path: string;
+  evidenceHash: Hash;
+  survivalBps: number;
+  falseClaim: boolean;
 }
 
 interface AttestationView {
@@ -40,8 +45,9 @@ interface AttestationView {
 
 type EscrowView = readonly [Address, bigint, bigint, bigint, number];
 
+loadEnv();
 const rpcUrl = process.env.RPC_URL ?? 'http://127.0.0.1:8545';
-const escrowPerProject = parseEther(process.env.ESCROW_PER_PROJECT ?? '0.02');
+const escrowPerProject = parseEther(process.env.ESCROW_PER_PROJECT ?? '0.003');
 
 const ctx = await connect(rpcUrl);
 const { accounts, deployment, publicClient, send, expectRevert, read } = ctx;
@@ -53,7 +59,24 @@ const plotFor = (role: ManifestPlot['role']) => {
   return plot;
 };
 const plots = [plotFor('healthy'), plotFor('degraded'), plotFor('burned')];
-const burned = plotFor('burned');
+
+const evidence: Evidence[] = plots.flatMap((plot) => {
+  const dir = `data/attestations/${plot.id}`;
+  if (!existsSync(fromRoot(dir))) throw new Error(`${dir} missing; run the oracle first`);
+  return readdirSync(fromRoot(dir))
+    .map((name) => name.match(/^epoch-(\d+)(\.false-claim)?\.json$/))
+    .filter((m): m is RegExpMatchArray => m !== null)
+    .map((m) => {
+      const path = `${dir}/${m[0]}`;
+      const bytes = readFileSync(fromRoot(path));
+      const json = JSON.parse(bytes.toString('utf8'));
+      if (json.plotHash !== plot.plotHash) throw new Error(`${path} is for a different plot geometry`);
+      return { plotId: plot.id, epoch: Number(m[1]), path, evidenceHash: keccak256(bytes), survivalBps: json.metrics.survivalRatioBps, falseClaim: Boolean(m[2]) };
+    });
+});
+const lie = evidence.find((e) => e.falseClaim);
+const truth = lie && evidence.find((e) => !e.falseClaim && e.plotId === lie.plotId && e.epoch === lie.epoch);
+const honest = evidence.filter((e) => !e.falseClaim && e !== truth);
 
 const verifierStake = await read<bigint>('SurvivalOracle', 'verifierStake');
 const challengeBond = await read<bigint>('SurvivalOracle', 'challengeBond');
@@ -66,29 +89,21 @@ const eth = (wei: bigint) => `${Number(formatEther(wei)).toFixed(6)} ETH`;
 const pct = (bps: bigint | number) => `${(Number(bps) / 100).toFixed(2)}%`;
 const short = (hex: string) => `${hex.slice(0, 10)}…${hex.slice(-6)}`;
 
-function loadAttestation(plotId: string, name: string) {
-  const path = `data/attestations/${plotId}/${name}.json`;
-  const bytes = readFileSync(fromRoot(path));
-  const json = JSON.parse(bytes.toString('utf8')) as AttestationFile;
-  return { path, json, evidenceHash: keccak256(bytes), survivalBps: json.metrics.survivalRatioBps };
-}
-
 console.log(bold('\nProof of Canopy — demo run'));
 line(`chain            ${ctx.chain.name} (${ctx.chainId})`);
 line(`ProjectRegistry  ${deployment.ProjectRegistry}`);
 line(`SurvivalOracle   ${deployment.SurvivalOracle}`);
 line(`MilestoneEscrow  ${deployment.MilestoneEscrow}`);
-line(`stake ${eth(verifierStake)} · bond ${eth(challengeBond)} · challenge window ${challengeWindow}s`);
-if (manifest.plots.some((p) => p.placeholder)) line(yellow('plots are placeholders until G1 picks the real polygons'));
+line(`stake ${eth(verifierStake)} · bond ${eth(challengeBond)} · challenge window ${challengeWindow}s · ${evidence.length} evidence files`);
 
 // ------------------------------------------------------------------------------------------------
 if (!ctx.isLocal) {
   step(0, 'Top up role accounts from the deployer');
-  const gas = parseEther(process.env.GAS_BUFFER ?? '0.002');
+  const gas = parseEther(process.env.GAS_BUFFER ?? '0.0003');
   const needs: [Role, bigint][] = [
     ['developer', gas],
-    ['funder', escrowPerProject * 3n + challengeBond + gas],
-    ['verifier', verifierStake * 3n + gas],
+    ['funder', escrowPerProject * BigInt(plots.length) + challengeBond + gas],
+    ['verifier', verifierStake * BigInt(honest.length) + gas],
     ['rogueVerifier', verifierStake + gas],
   ];
   for (const [role, need] of needs) {
@@ -98,7 +113,7 @@ if (!ctx.isLocal) {
       account: accounts.deployer, to: accounts[role].address, value: need - balance,
     });
     await publicClient.waitForTransactionReceipt({ hash });
-    line(`${`fund ${role} +${eth(need - balance)}`.padEnd(40)} ${dim(hash)}`);
+    line(`${`fund ${role} +${eth(need - balance)}`.padEnd(44)} ${dim(hash)}`);
   }
 }
 
@@ -116,12 +131,12 @@ for (const plot of plots) {
 
 // ------------------------------------------------------------------------------------------------
 step(2, 'The same forest cannot be registered twice');
+const burned = plotFor('burned');
 const sameAgain = await expectRevert({
   account: accounts.developer, contract: 'ProjectRegistry', functionName: 'register',
   args: [burned.plotHash, burned.cells.map(BigInt), burned.areaHectares, EPOCHS, THRESHOLD_BPS],
 });
 line(`identical polygon             → ${red(`✗ ${sameAgain}`)}`);
-
 const ring = ringFromGeoJson(readFileSync(fromRoot('data/plots', burned.file), 'utf8'));
 const shifted = canonicalRing(shiftRing(ring, 15, 0));
 const shiftedHash = keccak256(toBytes(canonicalGeoJson(shifted)));
@@ -142,134 +157,138 @@ for (const plot of plots) {
 }
 
 // ------------------------------------------------------------------------------------------------
-step(4, 'Verifier stakes and attests epoch 0 for each plot');
-await send(`stake ${eth(verifierStake * 3n)}`, {
-  account: accounts.verifier, contract: 'SurvivalOracle', functionName: 'stake', value: verifierStake * 3n,
+step(4, `Verifier stakes and attests ${honest.length} epochs from the Sentinel-2 evidence`);
+await send(`stake ${eth(verifierStake * BigInt(honest.length))}`, {
+  account: accounts.verifier, contract: 'SurvivalOracle', functionName: 'stake', value: verifierStake * BigInt(honest.length),
 });
-const attestationIds = new Map<string, bigint>();
 const records: Record<string, unknown>[] = [];
-for (const plot of plots) {
-  const a = loadAttestation(plot.id, 'epoch-0');
-  if (a.json.plotHash !== plot.plotHash) throw new Error(`${a.path} is for a different plot geometry`);
-  const { result } = await send<bigint>(`attest ${plot.id} = ${pct(a.survivalBps)}`, {
+const attestationIds = new Map<Evidence, bigint>();
+for (const e of honest) {
+  const { result } = await send<bigint>(`attest ${e.plotId} E${e.epoch} = ${pct(e.survivalBps)}`, {
     account: accounts.verifier, contract: 'SurvivalOracle', functionName: 'submitAttestation',
-    args: [projectIds.get(plot.id), 0, a.survivalBps, a.evidenceHash],
+    args: [projectIds.get(e.plotId), e.epoch, e.survivalBps, e.evidenceHash],
   });
-  attestationIds.set(plot.id, result);
-  line(dim(`  evidence ${a.path} → keccak256 ${short(a.evidenceHash)}${a.json.fixture ? ' (fixture)' : ''}`));
-  records.push({
-    attestationId: result.toString(), plotId: plot.id, epoch: 0, survivalBps: a.survivalBps,
-    evidenceFile: a.path, evidenceHash: a.evidenceHash, verifier: accounts.verifier.address,
-  });
+  attestationIds.set(e, result);
+  records.push({ attestationId: result.toString(), plotId: e.plotId, epoch: e.epoch, survivalBps: e.survivalBps, evidenceFile: e.path, evidenceHash: e.evidenceHash, verifier: accounts.verifier.address });
 }
 
 // ------------------------------------------------------------------------------------------------
+async function waitWindow(attestationId: bigint) {
+  const a = await read<AttestationView>('SurvivalOracle', 'getAttestation', [attestationId]);
+  await ctx.waitUntil(a.submittedAt + challengeWindow);
+  process.stdout.write('\r');
+  line(ctx.isLocal ? dim('anvil: fast-forwarded chain time past the window') : 'window closed');
+}
+
+async function settle(e: Evidence, id: bigint) {
+  await send(`finalize #${id}`, { account: accounts.funder, contract: 'SurvivalOracle', functionName: 'finalize', args: [id] });
+  await send(`release ${e.plotId} E${e.epoch}`, {
+    account: accounts.funder, contract: 'MilestoneEscrow', functionName: 'release', args: [projectIds.get(e.plotId), e.epoch],
+  });
+}
+
 step(5, `Challenge window (${challengeWindow}s)`);
-const lastId = attestationIds.get(burned.id)!;
-const last = await read<AttestationView>('SurvivalOracle', 'getAttestation', [lastId]);
-await ctx.waitUntil(last.submittedAt + challengeWindow);
-process.stdout.write('\r');
-line(ctx.isLocal ? dim('anvil: fast-forwarded chain time past the window') : 'window closed');
+await waitWindow([...attestationIds.values()].at(-1)!);
 line('no challenges → attestations can be finalized');
 
-// ------------------------------------------------------------------------------------------------
-step(6, 'Finalize and release tranche 0');
-for (const plot of plots) {
-  await send(`finalize attestation #${attestationIds.get(plot.id)}`, {
-    account: accounts.funder, contract: 'SurvivalOracle', functionName: 'finalize',
-    args: [attestationIds.get(plot.id)],
-  });
-  await send(`release project #${projectIds.get(plot.id)} epoch 0`, {
-    account: accounts.funder, contract: 'MilestoneEscrow', functionName: 'release',
-    args: [projectIds.get(plot.id), 0],
-  });
-}
-
-console.log();
-line(bold(`${'plot'.padEnd(22)} ${'survival'.padStart(9)} ${'tranche 0'.padStart(15)} ${'released'.padStart(15)} ${'share'.padStart(8)} ${'frozen'.padStart(15)}`));
-for (const plot of plots) {
-  const id = projectIds.get(plot.id)!;
-  const [, total, released, frozen] = await read<EscrowView>('MilestoneEscrow', 'escrows', [id]);
-  const tranche = await read<bigint>('MilestoneEscrow', 'trancheAmount', [total, EPOCHS, 0]);
-  const survival = records.find((r) => r.plotId === plot.id)!.survivalBps as number;
-  const share = tranche === 0n ? 0n : (released * 10_000n) / tranche;
-  const colour = share === 0n ? red : share > 5000n ? green : yellow;
-  line(`${plot.id.padEnd(22)} ${pct(survival).padStart(9)} ${eth(tranche).padStart(15)} ${eth(released).padStart(15)} ${colour(pct(share).padStart(8))} ${eth(frozen).padStart(15)}`);
-}
-console.log();
-const owed = await read<bigint>('MilestoneEscrow', 'withdrawable', [accounts.developer.address]);
-await send(`developer withdraws ${eth(owed)}`, {
-  account: accounts.developer, contract: 'MilestoneEscrow', functionName: 'withdraw',
-});
+step(6, 'Finalize and release');
+for (const [e, id] of attestationIds) await settle(e, id);
+await printSchedule();
 
 // ------------------------------------------------------------------------------------------------
-step(7, 'A verifier lies: "the burned forest recovered"');
-const burnedId = projectIds.get(burned.id)!;
-const lie = loadAttestation(burned.id, 'epoch-1.rogue');
-const truth = loadAttestation(burned.id, 'epoch-1');
-const [, burnedTotal] = await read<EscrowView>('MilestoneEscrow', 'escrows', [burnedId]);
-const tranche1 = await read<bigint>('MilestoneEscrow', 'trancheAmount', [burnedTotal, EPOCHS, 1]);
-const wouldPay = await read<bigint>('MilestoneEscrow', 'payoutFor', [tranche1, lie.survivalBps, THRESHOLD_BPS]);
+if (lie && truth) {
+  step(7, `A verifier lies: "${lie.plotId} recovered to ${pct(lie.survivalBps)} in epoch ${lie.epoch}"`);
+  const projectId = projectIds.get(lie.plotId)!;
+  const [, total] = await read<EscrowView>('MilestoneEscrow', 'escrows', [projectId]);
+  const tranche = await read<bigint>('MilestoneEscrow', 'trancheAmount', [total, EPOCHS, lie.epoch]);
+  const wouldPay = await read<bigint>('MilestoneEscrow', 'payoutFor', [tranche, lie.survivalBps, THRESHOLD_BPS]);
 
-await send(`rogue verifier stakes ${eth(verifierStake)}`, {
-  account: accounts.rogueVerifier, contract: 'SurvivalOracle', functionName: 'stake', value: verifierStake,
-});
-const { result: lieId } = await send<bigint>(`attest ${burned.id} epoch 1 = ${pct(lie.survivalBps)}`, {
-  account: accounts.rogueVerifier, contract: 'SurvivalOracle', functionName: 'submitAttestation',
-  args: [burnedId, 1, lie.survivalBps, lie.evidenceHash],
-});
-line(dim(`  if unchallenged this would release ${eth(wouldPay)} of a ${eth(tranche1)} tranche`));
+  await send(`rogue verifier stakes ${eth(verifierStake)}`, {
+    account: accounts.rogueVerifier, contract: 'SurvivalOracle', functionName: 'stake', value: verifierStake,
+  });
+  const { result: lieId } = await send<bigint>(`attest ${lie.plotId} E${lie.epoch} = ${pct(lie.survivalBps)}`, {
+    account: accounts.rogueVerifier, contract: 'SurvivalOracle', functionName: 'submitAttestation',
+    args: [projectId, lie.epoch, lie.survivalBps, lie.evidenceHash],
+  });
+  line(dim(`  evidence ${lie.path} → ${short(lie.evidenceHash)}`));
+  line(dim(`  if unchallenged this would release ${eth(wouldPay)} of a ${eth(tranche)} tranche`));
 
-const burnBefore = await publicClient.getBalance({ address: BURN_ADDRESS });
-const funderBefore = await read<bigint>('SurvivalOracle', 'available', [accounts.funder.address]);
-await send(`funder challenges (bond ${eth(challengeBond)})`, {
-  account: accounts.funder, contract: 'SurvivalOracle', functionName: 'challenge',
-  args: [lieId, truth.evidenceHash], value: challengeBond,
-});
-line(dim(`  counter-evidence ${truth.path} (${pct(truth.survivalBps)}) → ${short(truth.evidenceHash)}`));
-await send('arbiter upholds the challenge', {
-  account: accounts.deployer, contract: 'SurvivalOracle', functionName: 'resolve', args: [lieId, true],
-});
+  const burnBefore = await publicClient.getBalance({ address: BURN_ADDRESS });
+  const funderBefore = await read<bigint>('SurvivalOracle', 'available', [accounts.funder.address]);
+  await send(`funder challenges (bond ${eth(challengeBond)})`, {
+    account: accounts.funder, contract: 'SurvivalOracle', functionName: 'challenge',
+    args: [lieId, truth.evidenceHash], value: challengeBond,
+  });
+  line(dim(`  counter-evidence ${truth.path} (${pct(truth.survivalBps)}) → ${short(truth.evidenceHash)}`));
+  await send('arbiter upholds the challenge', {
+    account: accounts.deployer, contract: 'SurvivalOracle', functionName: 'resolve', args: [lieId, true],
+  });
+  const funderAfter = await read<bigint>('SurvivalOracle', 'available', [accounts.funder.address]);
+  const burnedNow = (await publicClient.getBalance({ address: BURN_ADDRESS })) - burnBefore;
+  console.log();
+  line(`rogue verifier stake    ${red(`-${eth(verifierStake)}`)}`);
+  line(`challenger              ${green(`+${eth(funderAfter - funderBefore - challengeBond)}`)}   reward, plus bond returned`);
+  line(`burned to 0x…dEaD       ${eth(burnedNow)}`);
+  line(`released for the lie    ${eth(0n)}`);
+  records.push({ attestationId: lieId.toString(), plotId: lie.plotId, epoch: lie.epoch, survivalBps: lie.survivalBps, evidenceFile: lie.path, evidenceHash: lie.evidenceHash, verifier: accounts.rogueVerifier.address, outcome: 'rejected after challenge' });
 
-const funderAfter = await read<bigint>('SurvivalOracle', 'available', [accounts.funder.address]);
-const rogueLeft = await read<bigint>('SurvivalOracle', 'available', [accounts.rogueVerifier.address]);
-const burnedNow = (await publicClient.getBalance({ address: BURN_ADDRESS })) - burnBefore;
-console.log();
-line(`rogue verifier stake    ${red(`-${eth(verifierStake)}`)}   (left: ${eth(rogueLeft)})`);
-line(`challenger              ${green(`+${eth(funderAfter - funderBefore - challengeBond)}`)}   reward, plus bond returned`);
-line(`burned to 0x…dEaD       ${eth(burnedNow)}`);
-line(`released to developer   ${eth(0n)}   (the lie paid nothing)`);
+  step(8, 'The slot reopens: the honest attestation goes in');
+  const { result: truthId } = await send<bigint>(`attest ${truth.plotId} E${truth.epoch} = ${pct(truth.survivalBps)}`, {
+    account: accounts.verifier, contract: 'SurvivalOracle', functionName: 'submitAttestation',
+    args: [projectId, truth.epoch, truth.survivalBps, truth.evidenceHash],
+  });
+  records.push({ attestationId: truthId.toString(), plotId: truth.plotId, epoch: truth.epoch, survivalBps: truth.survivalBps, evidenceFile: truth.path, evidenceHash: truth.evidenceHash, verifier: accounts.verifier.address });
+  await waitWindow(truthId);
+  await settle(truth, truthId);
+}
 
-const { result: truthId } = await send<bigint>(`slot reopens: honest attest = ${pct(truth.survivalBps)}`, {
-  account: accounts.verifier, contract: 'SurvivalOracle', functionName: 'submitAttestation',
-  args: [burnedId, 1, truth.survivalBps, truth.evidenceHash],
-});
-records.push(
-  {
-    attestationId: lieId.toString(), plotId: burned.id, epoch: 1, survivalBps: lie.survivalBps,
-    evidenceFile: lie.path, evidenceHash: lie.evidenceHash, verifier: accounts.rogueVerifier.address,
-    outcome: 'rejected after challenge',
-  },
-  {
-    attestationId: truthId.toString(), plotId: burned.id, epoch: 1, survivalBps: truth.survivalBps,
-    evidenceFile: truth.path, evidenceHash: truth.evidenceHash, verifier: accounts.verifier.address,
-    outcome: 'pending',
-  },
-);
+// ------------------------------------------------------------------------------------------------
+step(9, 'Every epoch settled: frozen money goes back, earned money goes out');
+for (const plot of plots) {
+  const [, , , frozen, settled] = await read<EscrowView>('MilestoneEscrow', 'escrows', [projectIds.get(plot.id)]);
+  if (settled === EPOCHS && frozen > 0n) {
+    await send(`funder reclaims ${eth(frozen)} (${plot.id})`, {
+      account: accounts.funder, contract: 'MilestoneEscrow', functionName: 'reclaimFrozen', args: [projectIds.get(plot.id)],
+    });
+  }
+}
+for (const role of ['developer', 'funder'] as const) {
+  const owed = await read<bigint>('MilestoneEscrow', 'withdrawable', [accounts[role].address]);
+  if (owed > 0n) {
+    await send(`${role} withdraws ${eth(owed)}`, { account: accounts[role], contract: 'MilestoneEscrow', functionName: 'withdraw' });
+  }
+}
+await printSchedule();
 
 // ------------------------------------------------------------------------------------------------
 const outPath = fromRoot('deployments', `${ctx.chainId}.demo.json`);
 writeJson(outPath, {
   chainId: ctx.chainId,
   ranAt: new Date().toISOString(),
-  contracts: {
-    ProjectRegistry: deployment.ProjectRegistry,
-    SurvivalOracle: deployment.SurvivalOracle,
-    MilestoneEscrow: deployment.MilestoneEscrow,
-  },
+  contracts: { ProjectRegistry: deployment.ProjectRegistry, SurvivalOracle: deployment.SurvivalOracle, MilestoneEscrow: deployment.MilestoneEscrow },
   roles: Object.fromEntries(Object.entries(accounts).map(([role, account]) => [role, account.address])),
   projects: plots.map((p) => ({ plotId: p.id, role: p.role, projectId: projectIds.get(p.id)!.toString(), plotHash: p.plotHash })),
   attestations: records,
   transactions: ctx.txLog,
 });
 console.log(`\n${green('✓')} ${ctx.txLog.length} transactions · log written to ${outPath}\n`);
+
+async function printSchedule() {
+  console.log();
+  line(bold(`${'plot'.padEnd(22)} ${Array.from({ length: EPOCHS }, (_, e) => `E${e}`.padStart(16)).join('')}   ${'released'.padStart(15)} ${'frozen'.padStart(15)}`));
+  for (const plot of plots) {
+    const id = projectIds.get(plot.id)!;
+    const [, , released, frozen] = await read<EscrowView>('MilestoneEscrow', 'escrows', [id]);
+    const cells: string[] = [];
+    for (let epoch = 0; epoch < EPOCHS; epoch++) {
+      const settledEpoch = await read<boolean>('MilestoneEscrow', 'epochSettled', [id, epoch]);
+      const e = evidence.find((x) => x.plotId === plot.id && x.epoch === epoch && !x.falseClaim);
+      if (!settledEpoch || !e) { cells.push(dim('—'.padStart(16))); continue; }
+      const share = Math.floor((Math.max(0, Math.min(10_000, e.survivalBps) - THRESHOLD_BPS) * 10_000) / (10_000 - THRESHOLD_BPS));
+      const text = `${(e.survivalBps / 100).toFixed(0)}%→${(share / 100).toFixed(0)}%`.padStart(16);
+      cells.push(share === 0 ? red(text) : share >= 5000 ? green(text) : yellow(text));
+    }
+    line(`${plot.id.padEnd(22)} ${cells.join('')}   ${eth(released).padStart(15)} ${eth(frozen).padStart(15)}`);
+  }
+  line(dim('cells: canopy retained → share of that epoch’s tranche released'));
+}

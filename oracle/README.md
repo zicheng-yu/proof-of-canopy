@@ -1,29 +1,35 @@
 # oracle/
 
-Python pipeline (not written yet): Sentinel-2 L2A statistics → canopy survival → attestation files.
+Sentinel-2 and NASA FIRMS → evidence files the verifier stakes on.
 
-## Output contract
+```bash
+node oracle/scan.ts manavgat 31.45 36.9 5 2020 2021 --fires 31.2,36.6,31.9,37.3,2021-07-28,2021-08-12
+node oracle/run.ts                                   # every plot in data/plots/manifest.json
+node oracle/stage-false-claim.ts TR-MANAVGAT-001 1 9400   # the dispute demo's false claim
+```
 
-The chain side only depends on this:
+Credentials come from `.env`: `CDSE_CLIENT_ID`, `CDSE_CLIENT_SECRET` (Copernicus Data Space OAuth
+client, client-credentials flow) and `FIRMS_MAP_KEY`. Tokens stay in memory and keys never reach the
+output files.
 
-- One file per plot and epoch at `data/attestations/<plotId>/epoch-<n>.json`, schema
-  `proof-of-canopy/attestation@1` (see the current fixtures for the shape).
-- `plotHash` must equal the plot's entry in `data/plots/manifest.json`.
-- `metrics.survivalRatioBps` is an integer 0–10000: canopy fraction in the observation window
-  divided by canopy fraction in the baseline window, capped at 1.
-- `evidenceHash` on chain = `keccak256` of the file's exact bytes. Write the file once and never
-  re-serialize it; anyone re-checking hashes the bytes, not a parsed object.
-- Do not put the verifier address in the file; the chain records who submitted it.
+## Files it writes
 
-Remove `"fixture": true` / `fixtureNote` and delete `scripts/make-fixture-attestations.ts` once real
-values are written.
+- `data/series/<plotId>.json`: one entry per month with pixel counts, NDVI/NBR means and a 40-bin NDVI
+  histogram over [-1, 1], plus the exact request (evalscript, resolution, mosaicking).
+- `data/attestations/<plotId>/epoch-<n>.json`: method parameters, `inputs.seriesFile` and
+  `inputs.seriesHash` (keccak256 of the series bytes), the scored months, `metrics.survivalRatioBps`
+  and the canopy fractions it came from, and `events.fire` when a fire break falls in that year.
 
-## Notes for the Statistical API request
+The chain stores `evidenceHash` = keccak256 of the attestation file's exact bytes, so files are written
+once and never re-serialized. `shared/method.ts` is the single implementation of the score; the Verify
+page imports the same file to recompute it.
 
-- Request statistics in a metric CRS (the plot's UTM zone, e.g. EPSG:32636 for Antalya/Bolu,
-  EPSG:32721 for Novo Progresso) so `resx`/`resy` = 10 means 10 m. In EPSG:4326 the same numbers
-  would mean 10 degrees.
-- Monthly aggregation mosaics one image per interval; set `mosaickingOrder: "leastCC"` in
-  `dataFilter` so cloud masking does not empty whole months.
-- Ask for a histogram of NDVI, not only the mean; the canopy fraction comes from the bins.
-- NASA FIRMS needs a free MAP_KEY and returns at most 10 days per request.
+## Request details that matter
+
+- The plot is sent as an EPSG:4326 polygon with `resx`/`resy` set to ~10 m in degrees at the plot's
+  latitude (`resx = 10 m` would mean 10 degrees in that CRS).
+- `mosaickingOrder: "leastCC"` picks the least cloudy scene per month; SCL classes 0, 1, 3, 8, 9, 10,
+  11 are masked per pixel.
+- Histogram edges must be sent as `-1.0` / `1.0`; the API rejects integer edges for FLOAT32 output.
+- The free tier rate-limits bursts (HTTP 429); requests run one at a time and back off on 429.
+- FIRMS returns at most 5 days per request; `VIIRS_SNPP_SP` (standard processing) covers past years.

@@ -13,6 +13,7 @@ interface PlotConfig {
   id: string;
   role: 'healthy' | 'degraded' | 'burned';
   name: string;
+  region: string;
   center?: LonLat;
   source?: string;
   placeholder?: boolean;
@@ -45,6 +46,7 @@ const plots = config.plots.map((plot) => {
     id: plot.id,
     role: plot.role,
     name: plot.name,
+    region: plot.region,
     placeholder: plot.placeholder ?? false,
     file,
     plotHash: keccak256(toBytes(text)),

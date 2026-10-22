@@ -1,0 +1,69 @@
+{
+  "schema": "proof-of-canopy/attestation@1",
+  "plotId": "BR-NOVOPROGRESSO-001",
+  "plotHash": "0x3e3915aacb7ab60db750094efa37a0e8c523e7132b22dedfd5751116c7e87c11",
+  "epoch": 3,
+  "method": {
+    "id": "canopy-late-season-max-v1",
+    "canopyNdviThreshold": 0.5,
+    "scoredMonths": [
+      8,
+      9,
+      10
+    ],
+    "minValidRatio": 0.6,
+    "baselineYears": [
+      2019,
+      2020
+    ],
+    "epochYears": [
+      2021,
+      2022,
+      2023,
+      2024,
+      2025
+    ]
+  },
+  "inputs": {
+    "seriesFile": "data/series/BR-NOVOPROGRESSO-001.json",
+    "seriesHash": "0x873db2c2834559587c99cbf2cbc435978036dac840f50050d31205530ec2c4bc"
+  },
+  "baseline": {
+    "years": [
+      2019,
+      2020
+    ],
+    "scoredMonths": [
+      "2019-10",
+      "2020-10"
+    ]
+  },
+  "observation": {
+    "year": 2024,
+    "scoredMonth": "2024-08"
+  },
+  "metrics": {
+    "canopyFractionBaseline": 0.971338,
+    "canopyFractionObserved": 0.836693,
+    "survivalRatioBps": 8613,
+    "cloudFreeRatioOfSeason": 0.80924,
+    "canopyTrendPerYear": -0.030446
+  },
+  "events": {
+    "fire": {
+      "month": "2024-09",
+      "canopyBefore": 0.836693,
+      "canopyAfter": 0.000645,
+      "drop": 0.836048,
+      "dnbr": 0.1252,
+      "firmsSource": "VIIRS_SNPP_SP",
+      "firmsWindow": [
+        "2024-08-01",
+        "2024-09-30"
+      ],
+      "firmsDetections": 5,
+      "firstDetection": "2024-08-06",
+      "lastDetection": "2024-09-16"
+    }
+  }
+}
