@@ -1,0 +1,36 @@
+\begin{tikzpicture}[x=1cm,y=1cm]
+\fill[bandbase] (0,0) rectangle (4.550,3.300);
+\node[ticklabel, anchor=north west, align=left] at (0.05,3.250) {no release\\at or below T};
+\draw[grid] (0,1.650) -- (6.500,1.650);
+\draw[grid] (0,3.300) -- (6.500,3.300);
+\draw[axis] (0,0) -- (6.500,0);
+\node[ticklabel, anchor=east] at (-0.06,0.000) {0\%};
+\node[ticklabel, anchor=north] at (0.000,-0.06) {0\%};
+\node[ticklabel, anchor=east] at (-0.06,1.650) {50\%};
+\node[ticklabel, anchor=north] at (3.250,-0.06) {50\%};
+\node[ticklabel, anchor=east] at (-0.06,3.300) {100\%};
+\node[ticklabel, anchor=north] at (6.500,-0.06) {100\%};
+\node[ticklabel, anchor=north, font=\tiny\bfseries] at (4.550,-0.06) {70\%};
+\draw[threshold] (4.550,0) -- (4.550,3.300);
+\draw[ink, line width=0.9pt, line join=round] (0,0) -- (4.550,0) -- (6.500,3.300);
+\node[rulepoint, circle, fill=good] at (6.500,3.300) {};
+\node[rulepoint, circle, fill=good] at (6.500,3.300) {};
+\node[rulepoint, circle, fill=good] at (6.500,3.300) {};
+\node[rulepoint, circle, fill=good] at (6.500,3.300) {};
+\node[rulepoint, circle, fill=good] at (6.489,3.281) {};
+\node[rulepoint, rectangle, fill=good] at (6.500,3.300) {};
+\node[rulepoint, rectangle, fill=warn] at (5.309,1.285) {};
+\node[rulepoint, rectangle, fill=warn] at (5.650,1.862) {};
+\node[rulepoint, rectangle, fill=warn] at (5.598,1.774) {};
+\node[rulepoint, rectangle, fill=warn] at (5.810,2.132) {};
+\node[rulepoint, regular polygon, regular polygon sides=3, fill=critical] at (1.055,0.000) {};
+\node[rulepoint, regular polygon, regular polygon sides=3, fill=critical] at (0.942,0.000) {};
+\node[rulepoint, regular polygon, regular polygon sides=3, fill=critical] at (1.726,0.000) {};
+\node[rulepoint, regular polygon, regular polygon sides=3, fill=critical] at (3.086,0.000) {};
+\node[rulepoint, regular polygon, regular polygon sides=3, fill=critical] at (3.307,0.000) {};
+\node[annot, anchor=east] at (6.340,3.280) {Yedigöller, all 5 years};
+\node[annot, anchor=north west, align=left] at (5.970,1.285) {Novo Progresso\\2022--2025};
+\node[annot, anchor=south] at (2.125,0.12) {Manavgat, all 5 years: nothing released};
+\node[ticklabel, anchor=north] at (3.250,-0.36) {canopy retained against baseline (s)};
+\node[ticklabel, anchor=south, rotate=90] at (-0.62,1.650) {share of tranche released};
+\end{tikzpicture}

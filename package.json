@@ -16,7 +16,8 @@
     "abis": "node scripts/export-abis.ts",
     "snapshot": "node scripts/snapshot-events.ts",
     "oracle": "node oracle/run.ts",
-    "oracle:false-claim": "node oracle/stage-false-claim.ts TR-MANAVGAT-001 1 9400"
+    "oracle:false-claim": "node oracle/stage-false-claim.ts TR-MANAVGAT-001 1 9400",
+    "proposal": "node docs/proposal/figures.ts && cd docs/proposal && latexmk proposal.tex && cp build/proposal.pdf ../Proof-of-Canopy-proposal.pdf"
   },
   "dependencies": {
     "h3-js": "^4.5.0",

@@ -13,3 +13,7 @@ deployments/31337*.json
 web/dist/
 web/public/data/
 .wrangler/
+
+# LaTeX build output; the finished PDF is copied to docs/Proof-of-Canopy-proposal.pdf
+docs/proposal/build/
+docs/proposal/build.log
