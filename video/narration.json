@@ -1,0 +1,55 @@
+{
+  "voice": "Samantha",
+  "rate": 172,
+  "note": "`text` is what the subtitles show; `say` (when present) is the same line spelled for the speech synthesiser.",
+  "segments": [
+    {
+      "id": "open",
+      "text": "A forest carbon project promises decades of storage. Too often it is verified once, and paid once. If the trees burn in year two, nothing in the payment reacts, and nobody who vouched for them pays a price."
+    },
+    {
+      "id": "rule",
+      "text": "Proof of Canopy changes when the money moves. Funding sits in escrow and is released one year at a time, in proportion to how much of the original canopy Sentinel-2 can still see. At or below seventy percent, that year's money stays frozen. Every survival claim is staked by the verifier who makes it, and anyone can challenge it."
+    },
+    {
+      "id": "plots",
+      "text": "These are three real 250-hectare plots, measured the same way. Yedigöller, in Türkiye, is healthy. Novo Progresso, in Brazil, is slowly degrading. And Manavgat burned in the 2021 wildfire. Seven years of monthly Sentinel-2 data show the canopy collapse in August 2021, confirmed three independent ways: the canopy drop, a burn index of 0.33, and fifteen NASA fire detections inside the plot. The shrubs that grew back never reach the threshold.",
+      "say": "These are three real two-hundred-fifty hectare plots, measured the same way. Yedi-gerler, in Turkey-yay, is healthy. Novo Progresso, in Brazil, is slowly degrading. And Manavgat burned in the twenty twenty-one wildfire. Seven years of monthly Sentinel-2 data show the canopy collapse in August twenty twenty-one, confirmed three independent ways: the canopy drop, a burn index of point three three, and fifteen NASA fire detections inside the plot. The shrubs that grew back never reach the threshold."
+    },
+    {
+      "id": "smoke",
+      "text": "Satellites get fooled too. In the Amazon fire season, smoke makes this plot look bare for a month, while the burn index barely moves. So each year is scored on its greenest month from August to October. Smoke and cloud only ever lower the reading; real canopy loss lowers every month."
+    },
+    {
+      "id": "register",
+      "text": "Everything from here is live on Base Sepolia. A developer registers the three plots. Try to register the same land again, and the contract refuses. Shift the boundary fifteen metres, so its fingerprint changes, and it still refuses, because the map cells are already claimed. Then a funder locks money in escrow for each project.",
+      "say": "Everything from here is live on Base Sepolia. A developer registers the three plots. Try to register the same land again, and the contract refuses. Shift the boundary fifteen meters, so its fingerprint changes, and it still refuses, because the map cells are already claimed. Then a funder locks money in escrow for each project."
+    },
+    {
+      "id": "settle",
+      "text": "A verifier stakes and submits five years for every plot, each with the hash of the evidence file it relies on. The challenge window passes, sped up here. Then each year settles on its own. The healthy forest gets its money. The degrading one gets part of it. The burned one gets nothing: its money stays frozen. The website rebuilds all of this from contract events as they land."
+    },
+    {
+      "id": "lie",
+      "text": "Now a second verifier lies, and claims the burned forest recovered to 94 percent. Unchallenged, that would pay for trees that are not there. The funder challenges with the honest evidence and posts a bond. The arbiter upholds the challenge. The liar's stake is slashed, half to the challenger, half burned. Nothing is released for the lie, and the honest claim takes its place.",
+      "say": "Now a second verifier lies, and claims the burned forest recovered to ninety-four percent. Unchallenged, that would pay for trees that are not there. The funder challenges with the honest evidence and posts a bond. The arbiter upholds the challenge. The liar's stake is slashed, half to the challenger, half burned. Nothing is released for the lie, and the honest claim takes its place."
+    },
+    {
+      "id": "verify",
+      "text": "And you don't have to trust any of us. The Verify page fetches the liar's evidence file and hashes it in your browser. It matches the chain, so the file is exactly what was staked. Then it reruns the measurement on the satellite series, with the oracle's own code. The answer is 14.49 percent, not 94. A matching hash proves the file wasn't edited. Recomputing shows whether it is true.",
+      "say": "And you don't have to trust any of us. The Verify page fetches the liar's evidence file and hashes it in your browser. It matches the chain, so the file is exactly what was staked. Then it reruns the measurement on the satellite series, with the oracle's own code. The answer is fourteen point four nine percent, not ninety-four. A matching hash proves the file wasn't edited. Recomputing shows whether it is true."
+    },
+    {
+      "id": "reclaim",
+      "text": "When every year is settled, the funder takes back what the canopy did not earn, and the developer withdraws what it did."
+    },
+    {
+      "id": "architecture",
+      "text": "The measurement stays off chain, where anyone can rerun it. The chain holds what no single party should hold: the plot's identity, the money, and a public, staked record of who claimed what. It doesn't trust anyone. It makes lying expensive."
+    },
+    {
+      "id": "end",
+      "text": "We measure canopy, not carbon: proof, year after year, that the trees are still there."
+    }
+  ]
+}

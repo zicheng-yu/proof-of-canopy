@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Terminal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Sans:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #111511; --fg: #dfe4dc; --dim: #7c867a; --red: #f07a5f; --green: #7fd1a0; --yellow: #e8c06a; --cyan: #7cc6d6; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #e9ebe5; }
+  .window { position: absolute; inset: 32px; border-radius: 12px; background: var(--bg); box-shadow: 0 10px 40px rgba(0,0,0,.25); overflow: hidden; display: flex; flex-direction: column; }
+  .bar { height: 48px; flex: none; display: flex; align-items: center; gap: 10px; padding: 0 18px; background: #1b201b; color: var(--dim); font: 500 17px 'Instrument Sans', system-ui, sans-serif; }
+  .bar i { width: 14px; height: 14px; border-radius: 50%; background: #3a413a; display: inline-block; }
+  .bar span { margin-left: 10px; }
+  #screen { flex: 1; overflow: hidden; padding: 20px 28px; display: flex; flex-direction: column; justify-content: flex-end; }
+  #lines { font: 400 19px/1.55 'IBM Plex Mono', ui-monospace, monospace; color: var(--fg); white-space: pre; }
+  .b { font-weight: 600; } .d { color: var(--dim); } .r { color: var(--red); } .g { color: var(--green); } .y { color: var(--yellow); } .c { color: var(--cyan); }
+  .prompt { color: var(--green); }
+  .cursor { display: inline-block; width: 11px; height: 22px; background: var(--fg); vertical-align: -3px; animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+</style>
+</head>
+<body>
+<div class="window">
+  <div class="bar"><i></i><i></i><i></i><span id="title">proof-of-canopy — Base Sepolia</span></div>
+  <div id="screen"><div id="lines"></div></div>
+</div>
+<script>
+// Renders a real process's stdout, streamed over server-sent events. ANSI colours become spans, '\r'
+// rewrites the current line, and long basescan URLs are shortened to fit (same hashes, same order).
+const screen = document.getElementById('lines');
+const lines = [''];
+const ANSI = { '1': 'b', '2': 'd', '31': 'r', '32': 'g', '33': 'y', '36': 'c' };
+
+function shorten(text) {
+  return text.replace(/https:\/\/sepolia\.basescan\.org\/tx\/(0x[0-9a-f]{64})/gi, (_, h) => `tx ${h.slice(0, 10)}…${h.slice(-6)}`);
+}
+
+function toHtml(raw) {
+  let html = '';
+  let classes = [];
+  for (const part of raw.split(/(\x1b\[[0-9;]*m)/)) {
+    const m = part.match(/^\x1b\[([0-9;]*)m$/);
+    if (m) {
+      for (const code of m[1].split(';')) {
+        if (code === '0' || code === '') classes = [];
+        else if (ANSI[code]) classes.push(ANSI[code]);
+      }
+      continue;
+    }
+    const esc = shorten(part).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+    html += classes.length ? `<span class="${classes.join(' ')}">${esc}</span>` : esc;
+  }
+  return html;
+}
+
+function render(cursor) {
+  const visible = lines.slice(-38);
+  screen.innerHTML = visible.map((l, i) => {
+    const html = l.startsWith('$ ') ? `<span class="prompt">$</span> ${toHtml(l.slice(2))}` : toHtml(l);
+    return i === visible.length - 1 && cursor ? html + '<span class="cursor"></span>' : html;
+  }).join('\n');
+}
+
+function write(text) {
+  for (const ch of text.split(/(\n|\r)/)) {
+    if (ch === '\n') lines.push('');
+    else if (ch === '\r') lines[lines.length - 1] = '';
+    else lines[lines.length - 1] += ch;
+  }
+}
+
+async function type(command) {
+  lines[lines.length - 1] = '$ ';
+  for (const c of command) {
+    lines[lines.length - 1] += c;
+    render(true);
+    await new Promise((r) => setTimeout(r, 55 + Math.random() * 40));
+  }
+  await new Promise((r) => setTimeout(r, 400));
+  lines.push('');
+}
+
+window.start = async (command) => {
+  render(true);
+  await new Promise((r) => setTimeout(r, 800));
+  await type(command);
+  const source = new EventSource('/stream');
+  source.onmessage = (e) => { write(JSON.parse(e.data)); render(false); };
+  source.addEventListener('end', () => { source.close(); lines.push('$ '); render(true); });
+};
+render(true);
+</script>
+</body>
+</html>

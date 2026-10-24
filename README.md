@@ -1,6 +1,6 @@
 # Proof of Canopy
 
-**Track: Carbon Markets & Emissions Transparency** · Live: https://proofofcanopy.zichengyu.com
+**Track: Carbon Markets & Emissions Transparency** · Live: https://proofofcanopy.zichengyu.com · Demo video: https://proofofcanopy.zichengyu.com/video/
 
 Afforestation money should not be paid out once, at planting. Proof of Canopy keeps it in escrow and
 releases it year by year according to **satellite-verified canopy survival**: healthy forest releases,
@@ -39,9 +39,9 @@ Deployed on Base Sepolia (sources verified on Sourcify), with the full demo run 
 
 | Contract | Address |
 |---|---|
-| ProjectRegistry | [`0xf03893E77fB5e8b28be7E73A929Ff930731E9eba`](https://sepolia.basescan.org/address/0xf03893E77fB5e8b28be7E73A929Ff930731E9eba) |
-| SurvivalOracle | [`0x2622A1d172477551B905728e96FcCC54c554243D`](https://sepolia.basescan.org/address/0x2622A1d172477551B905728e96FcCC54c554243D) |
-| MilestoneEscrow | [`0x493B840959dDbD2c1B958aBC4ef41006AF7E18eC`](https://sepolia.basescan.org/address/0x493B840959dDbD2c1B958aBC4ef41006AF7E18eC) |
+| ProjectRegistry | [`0x9b63be2BC0c7a056606A46cdC2Dd0cb5723fda2d`](https://sepolia.basescan.org/address/0x9b63be2BC0c7a056606A46cdC2Dd0cb5723fda2d) |
+| SurvivalOracle | [`0x5BA5da334254FBbDF611ad1b2AbC7B22aFB44702`](https://sepolia.basescan.org/address/0x5BA5da334254FBbDF611ad1b2AbC7B22aFB44702) |
+| MilestoneEscrow | [`0xb2AC9d36301cA0Cd1F001A19CE600fc5d6954a39`](https://sepolia.basescan.org/address/0xb2AC9d36301cA0Cd1F001A19CE600fc5d6954a39) |
 
 Every transaction of that run is listed in `deployments/84532.demo.json` and on each plot's page.
 

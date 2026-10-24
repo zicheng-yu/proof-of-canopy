@@ -1,0 +1,11 @@
+{
+  "MilestoneEscrow": "0x493B840959dDbD2c1B958aBC4ef41006AF7E18eC",
+  "ProjectRegistry": "0xf03893E77fB5e8b28be7E73A929Ff930731E9eba",
+  "SurvivalOracle": "0x2622A1d172477551B905728e96FcCC54c554243D",
+  "arbiter": "0x63DF07D6886F7D60E54f93B44a6a2c766F47F676",
+  "chainId": 84532,
+  "challengeBond": 250000000000000,
+  "challengeWindow": 60,
+  "startBlock": 48711748,
+  "verifierStake": 500000000000000
+}

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Slides</title>
+<style>
+  @font-face { font-family: 'Instrument Sans'; src: url(out/slides/InstrumentSans-Regular.ttf); font-weight: 400; }
+  @font-face { font-family: 'Instrument Sans'; src: url(out/slides/InstrumentSans-SemiBold.ttf); font-weight: 600; }
+  @font-face { font-family: 'IBM Plex Mono'; src: url(out/slides/IBMPlexMono-Regular.ttf); }
+  html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; font-family: 'Instrument Sans', sans-serif; }
+  section { display: none; width: 1920px; height: 1080px; box-sizing: border-box; }
+  section.on { display: flex; }
+  .mono { font-family: 'IBM Plex Mono', monospace; }
+  #open { background: #131712; color: #f2f3ef; flex-direction: column; justify-content: center; padding: 0 200px; gap: 36px; }
+  #open .small { font-size: 40px; color: #9aa397; }
+  #open .big { font-size: 104px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.05; }
+  #open .q { font-size: 56px; color: #f2f3ef; }
+  #open .q b { color: #e07a5f; font-weight: 600; }
+  #arch { background: #f2f3ef; color: #131712; flex-direction: column; align-items: center; justify-content: center; gap: 28px; }
+  #arch h1 { margin: 0; font-size: 56px; font-weight: 600; letter-spacing: -0.02em; align-self: flex-start; margin-left: 110px; }
+  #arch img { width: 1640px; background: #fff; border-radius: 14px; box-shadow: 0 6px 30px rgba(0,0,0,.08); }
+  #end { background: #f2f3ef; color: #131712; flex-direction: column; justify-content: center; padding: 0 200px; gap: 30px; }
+  #end .mark { display: grid; grid-template-columns: repeat(3, 34px); gap: 9px; }
+  #end .mark i { width: 34px; height: 34px; border-radius: 4px; background: #1e4d33; }
+  #end .mark i.l { background: #9a896a; }
+  #end h1 { margin: 0; font-size: 120px; font-weight: 600; letter-spacing: -0.03em; }
+  #end .tag { font-size: 52px; color: #454d44; }
+  #end .links { margin-top: 24px; font-size: 34px; line-height: 1.6; color: #131712; }
+  #end .fine { font-size: 24px; color: #5e665c; }
+</style>
+</head>
+<body>
+<section id="open">
+  <div class="small">A forest carbon project promises decades of storage.</div>
+  <div class="big">Verified once.<br>Paid once.</div>
+  <div class="q">What if the forest <b>burns in year two?</b></div>
+</section>
+<section id="arch">
+  <h1>Architecture</h1>
+  <img src="out/slides/arch-diagram.png" alt="">
+</section>
+<section id="end">
+  <div class="mark"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="l"></i><i class="l"></i></div>
+  <h1>Proof of Canopy</h1>
+  <div class="tag">Pay for forests that are still standing.</div>
+  <div class="links mono">proofofcanopy.zichengyu.com<br>github.com/zicheng-yu/proof-of-canopy</div>
+  <div class="fine">Track: Carbon Markets &amp; Emissions Transparency · Base Sepolia, sources verified on Sourcify · Contains modified Copernicus Sentinel data 2019–2026 · NASA FIRMS</div>
+</section>
+<script>
+  document.getElementById(location.hash.slice(1) || 'open').classList.add('on');
+</script>
+</body>
+</html>

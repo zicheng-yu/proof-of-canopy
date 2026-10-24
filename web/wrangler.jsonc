@@ -4,8 +4,12 @@
   "compatibility_date": "2026-10-22",
   "workers_dev": false,
   "routes": [{ "pattern": "proofofcanopy.zichengyu.com", "custom_domain": true }],
+  // Only the demo video goes through the Worker, which adds Range support; everything else is plain static assets.
+  "main": "worker/index.ts",
   "assets": {
     "directory": "./dist",
-    "not_found_handling": "single-page-application"
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/video/*.mp4"]
   }
 }

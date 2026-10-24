@@ -6,8 +6,8 @@ Afforestation funding, released only while the forest is still standing.
 
 - Live site: https://proofofcanopy.zichengyu.com
 - Code: https://github.com/zicheng-yu/proof-of-canopy
-- Contracts (Base Sepolia, sources verified on Sourcify): ProjectRegistry `0xf03893E77fB5e8b28be7E73A929Ff930731E9eba`, SurvivalOracle `0x2622A1d172477551B905728e96FcCC54c554243D`, MilestoneEscrow `0x493B840959dDbD2c1B958aBC4ef41006AF7E18eC`
-- Video: [VIDEO URL]
+- Contracts (Base Sepolia, sources verified on Sourcify): ProjectRegistry `0x9b63be2BC0c7a056606A46cdC2Dd0cb5723fda2d`, SurvivalOracle `0x5BA5da334254FBbDF611ad1b2AbC7B22aFB44702`, MilestoneEscrow `0xb2AC9d36301cA0Cd1F001A19CE600fc5d6954a39`
+- Demo video (3:26, recorded live on Base Sepolia): https://proofofcanopy.zichengyu.com/video/
 
 ## Problem
 

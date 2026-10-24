@@ -17,3 +17,6 @@ web/public/data/
 # LaTeX build output; the finished PDF is copied to docs/Proof-of-Canopy-proposal.pdf
 docs/proposal/build/
 docs/proposal/build.log
+
+# demo video build output (the final MP4 is copied to web/public/video/)
+video/out/
